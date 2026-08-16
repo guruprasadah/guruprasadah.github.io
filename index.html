@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="./public/output.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.16.1/+esm'
+    mermaid.initialize({ startOnLoad: false });
+
+    document.body.addEventListener('htmx:afterSwap', async (event) => {
+        await mermaid.run({
+            nodes: document.querySelectorAll('.mermaid')
+        });
+    });
+  </script>
+</head>
+<body class="flex items-center justify-center">
+    <div id="main" class="w-200 flex flex-col items-center">
+        <nav class="flex justify-start w-full">
+            <div class="p-2">guruprasadah's blog</div>
+        </nav>
+        <hr class="w-full">
+        <div class="w-full flex flex-col items-left px-2">
+            <p>I'm Guruprasad AH, programmer and Friendly Neighbor Computer Mechanic.</p>
+            <p>I'm a CS freshman at <a href=https://www.snuchennai.edu.in class='text-blue-600'>Shiv Nadar University Chennai</a>.</p>
+            <p>I do most of this for fun.</p>
+        </div>
+        <hr class="w-full">
+        <div id="content" class="px-2 w-full">
+            <span hx-get="/public/posts.html" hx-trigger="load" hx-swap="outerHTML" hx-target="#content">loading...</span>
+        </div>
+    </div>
+</body>
+</html>
