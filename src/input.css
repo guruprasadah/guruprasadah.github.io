@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
+@source "../src";
 @source "../generate.py";
 @source "../public";
+@source "../posts/**/index.html";
 
 @plugin "@tailwindcss/typography";

@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "generate": "uv run python generate.py",
+    "css": "npx @tailwindcss/cli -i ./src/input.css -o ./public/output.css",
+    "build": "npm run generate && npm run css"
   },
   "keywords": [],
   "author": "",
