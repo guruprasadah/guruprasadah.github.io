@@ -85,11 +85,11 @@ def load_post(path):
 def render_post_content(post):
     page_title = f"{post['title']} — {SITE_NAME}"
 
-    return f"""<div id='content' class='w-full pt-5 flex flex-col items-center' data-page-title='{escape(page_title)}'>
+    return f"""<div id='content' class='w-full min-w-0 pt-5 flex flex-col items-center' data-page-title='{escape(page_title)}'>
         <div class='w-full flex justify-end px-2'>
             <a class='text-blue-600' href='/' hx-get='/' hx-select='#content' hx-target='#content' hx-swap='outerHTML' hx-push-url='true'>&crarr; home</a>
         </div>
-        <div class='prose'>
+        <div class='prose px-2 w-full min-w-0'>
             <h1>{escape(post['title'])}</h1>
             <span>Published {escape(post['published'])}</span>
             <div>{post['html']}</div>
@@ -110,7 +110,7 @@ def render_home_content(posts):
         ]
     )
 
-    return f"""<div id='content' class='px-2 w-full' data-page-title='{escape(SITE_NAME)}'>{post_list}</div>"""
+    return f"""<div id='content' class='px-2 w-full min-w-0' data-page-title='{escape(SITE_NAME)}'>{post_list}</div>"""
 
 
 def render_meta(og_title, description, canonical_path, og_type):

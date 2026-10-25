@@ -601,11 +601,14 @@
   .flex {
     display: flex;
   }
-  .w-200 {
-    width: calc(var(--spacing) * 200);
-  }
   .w-full {
     width: 100%;
+  }
+  .max-w-200 {
+    max-width: calc(var(--spacing) * 200);
+  }
+  .min-w-0 {
+    min-width: 0px;
   }
   .flex-col {
     flex-direction: column;

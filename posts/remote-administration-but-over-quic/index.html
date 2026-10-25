@@ -48,7 +48,7 @@
   </script>
 </head>
 <body class="flex items-center justify-center">
-    <div id="main" class="w-200 flex flex-col items-center">
+    <div id="main" class="w-full max-w-200 min-w-0 flex flex-col items-center">
         <nav class="flex justify-start w-full">
             <div class="p-2">guruprasadah's blog</div>
         </nav>
@@ -59,11 +59,11 @@
             <p>I do most of this for fun.</p>
         </div>
         <hr class="w-full">
-<div id='content' class='w-full pt-5 flex flex-col items-center' data-page-title='Remote administration, but over QUIC — guruprasadah&#39;s blog'>
+<div id='content' class='w-full min-w-0 pt-5 flex flex-col items-center' data-page-title='Remote administration, but over QUIC — guruprasadah&#39;s blog'>
         <div class='w-full flex justify-end px-2'>
             <a class='text-blue-600' href='/' hx-get='/' hx-select='#content' hx-target='#content' hx-swap='outerHTML' hx-push-url='true'>&crarr; home</a>
         </div>
-        <div class='prose'>
+        <div class='prose px-2 w-full min-w-0'>
             <h1>Remote administration, but over QUIC</h1>
             <span>Published 20260816</span>
             <div><p>Newfangled protocols are no new thing, neither is reimplementing a perfectly functional piece of utility over it. The only thing that might make such a project worthy of a second glance is if you bring genuine improvement made possible by using said newfangled protocol.</p>
