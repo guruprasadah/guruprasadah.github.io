@@ -1,5 +1,6 @@
 ---
 published: 20260816
+title: Remote administration, but over QUIC
 ---
 
 Newfangled protocols are no new thing, neither is reimplementing a perfectly functional piece of utility over it. The only thing that might make such a project worthy of a second glance is if you bring genuine improvement made possible by using said newfangled protocol.

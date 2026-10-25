@@ -1,7 +1,7 @@
 import re
 import shutil
-import unicodedata
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import frontmatter
 from markdown_it import MarkdownIt
@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent
 POSTS_DIR = ROOT / "posts"
 PUBLIC_DIR = ROOT / "public"
 LAYOUT_PATH = ROOT / "src" / "layout.html"
+POST_INDEX = "index.md"
 
 SITE_NAME = "guruprasadah's blog"
 SITE_DESCRIPTION = "I'm Guruprasad AH, programmer and Friendly Neighbor Computer Mechanic."
@@ -57,13 +58,6 @@ def render_fence(self, tokens, idx, options, env):
 md.add_render_rule("fence", render_fence)
 
 
-def slugify(value):
-    normalized = unicodedata.normalize("NFKD", value)
-    ascii_value = normalized.encode("ascii", "ignore").decode("ascii")
-    slug = re.sub(r"[^a-zA-Z0-9]+", "-", ascii_value).strip("-").lower()
-    return slug or "post"
-
-
 def site_base_url():
     cname = ROOT / "CNAME"
     if cname.is_file():
@@ -80,30 +74,89 @@ def absolute_url(path):
     return f"{SITE_BASE_URL}{path}" if SITE_BASE_URL else path
 
 
-def load_post(path):
-    post = frontmatter.loads(path.read_text(encoding="utf-8"))
+def validate_post_images(bundle_dir, source, tokens):
+    """Check that local images stay inside the post bundle and exist.
 
-    title = str(post.metadata.get("title") or path.stem)
-    slug = str(post.metadata.get("slug") or slugify(title))
+    Post assets live next to the post's index.md, so a reference such as
+    ``images/diagram.png`` works both in the generated page and when the
+    Markdown source is previewed.
+    """
+    bundle_dir = bundle_dir.resolve()
+
+    for token in tokens:
+        for child in token.children or []:
+            if child.type != "image":
+                continue
+
+            src = child.attrGet("src") or ""
+            if not src or src.startswith("#"):
+                continue
+
+            parsed = urlsplit(src)
+            if parsed.scheme or parsed.netloc:
+                continue  # Remote or data: URL, nothing local to check.
+
+            if src.startswith("/"):
+                raise ValueError(
+                    f"{source}: image {src!r} must be inside its post "
+                    "directory, not root-absolute"
+                )
+
+            target = (bundle_dir / unquote(parsed.path)).resolve()
+            if not target.is_relative_to(bundle_dir):
+                raise ValueError(
+                    f"{source}: image {src!r} points outside the post directory"
+                )
+            if not target.is_file():
+                raise ValueError(
+                    f"{source}: image {src!r} not found (expected "
+                    f"{target.relative_to(bundle_dir)})"
+                )
+
+
+def load_post(path):
+    bundle_dir = path.parent
+    source = path.relative_to(ROOT)
+    slug = bundle_dir.name
 
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", slug):
         raise ValueError(
-            f"{path.name}: slug {slug!r} must contain only lowercase letters, "
-            "numbers, and single hyphens"
+            f"{source}: the post directory name is its URL slug and must contain "
+            "only lowercase letters, numbers, and single hyphens"
         )
 
+    post = frontmatter.loads(path.read_text(encoding="utf-8"))
+
+    declared_slug = post.metadata.get("slug")
+    if declared_slug is not None and str(declared_slug) != slug:
+        raise ValueError(
+            f"{source}: frontmatter slug {declared_slug!r} must match the post "
+            f"directory name {slug!r}"
+        )
+
+    title = str(post.metadata.get("title") or slug)
+
     if post.metadata.get("published") is None:
-        raise ValueError(f"{path.name}: missing 'published' in frontmatter")
+        raise ValueError(f"{source}: missing 'published' in frontmatter")
+
+    wip = post.metadata.get("wip", False)
+    if not isinstance(wip, bool):
+        raise ValueError(f"{source}: 'wip' must be true or false")
 
     description = post.metadata.get("description")
 
+    env = {}
+    tokens = md.parse(post.content, env)
+    validate_post_images(bundle_dir, source, tokens)
+
     return {
-        "source": path.name,
+        "source": str(source),
         "slug": slug,
         "title": title,
         "published": str(post.metadata["published"]),
         "description": str(description) if description else "",
-        "html": md.render(post.content),
+        "wip": wip,
+        "html": md.renderer.render(tokens, md.options, env),
     }
 
 
@@ -112,7 +165,7 @@ def render_post_content(post):
 
     return f"""<div id='content' class='w-full min-w-0 pt-5 flex flex-col items-center' data-page-title='{escape(page_title)}'>
         <div class='w-full flex justify-end px-2'>
-            <a class='text-blue-600' href='/' hx-get='/' hx-select='#main' hx-target='#main' hx-swap='outerHTML' hx-push-url='true'>&crarr; home</a>
+            <a class='text-blue-600' href='../../index.html' hx-get='../../' hx-select='#main' hx-target='#main' hx-swap='outerHTML' hx-push-url='true'>&crarr; home</a>
         </div>
         <div class='prose px-2 w-full min-w-0'>
             <h1>{escape(post['title'])}</h1>
@@ -128,7 +181,7 @@ def render_home_content(posts):
         [
             (
                 "<span class='flex justify-between w-full'>"
-                f"<a href='/posts/{post['slug']}/' hx-get='/posts/{post['slug']}/' hx-select='#main' hx-target='#main' hx-swap='outerHTML' hx-push-url='true' class='text-blue-600'>{escape(post['title'])}</a>"
+                f"<a href='posts/{post['slug']}/index.html' hx-get='posts/{post['slug']}/' hx-select='#main' hx-target='#main' hx-swap='outerHTML' hx-push-url='true' class='text-blue-600'>{escape(post['title'])}</a>"
                 f" <span>{escape(post['published'])}</span>"
                 "</span>"
             )
@@ -161,7 +214,13 @@ def render_meta(og_title, description, canonical_path, og_type):
 
 
 def render_page(
-    title, content, description="", canonical_path=None, og_type="website", og_title=None
+    title,
+    content,
+    description="",
+    canonical_path=None,
+    og_type="website",
+    og_title=None,
+    base="",
 ):
     layout = LAYOUT_PATH.read_text(encoding="utf-8")
     replacements = {
@@ -169,6 +228,7 @@ def render_page(
         "META": render_meta(
             og_title or title, description, canonical_path, og_type
         ),
+        "BASE": base,
         "CONTENT": content,
     }
 
@@ -187,8 +247,8 @@ def write_page(path, text):
 def clean_generated_post_pages():
     """Remove page files left behind by posts that were renamed or deleted.
 
-    Only the generated index.html is removed. Anything else in the directory
-    (for example per-post images) is left alone.
+    Only the generated index.html is removed. The post's source index.md and
+    anything else in the directory (for example images/) are left alone.
     """
     for entry in POSTS_DIR.iterdir():
         if not entry.is_dir():
@@ -214,12 +274,25 @@ def clean_legacy_fragments():
         legacy_index.unlink()
 
 
+def post_sources():
+    """Return the index.md path for every post bundle in posts/."""
+    sources = []
+
+    for entry in sorted(POSTS_DIR.iterdir()):
+        if entry.is_file() and entry.suffix == ".md":
+            raise ValueError(
+                f"{entry.relative_to(ROOT)}: posts are directories named after "
+                f"their slug; move this file to posts/<slug>/{POST_INDEX}"
+            )
+        if entry.is_dir() and (entry / POST_INDEX).is_file():
+            sources.append(entry / POST_INDEX)
+
+    return sources
+
+
 def main():
-    posts = [
-        load_post(path)
-        for path in sorted(POSTS_DIR.iterdir())
-        if path.is_file() and path.suffix == ".md"
-    ]
+    posts = [load_post(path) for path in post_sources()]
+    posts = [post for post in posts if not post["wip"]]
 
     posts_by_slug = {}
     for post in posts:
@@ -243,6 +316,7 @@ def main():
             canonical_path=f"/posts/{post['slug']}/",
             content=render_post_content(post),
             og_type="article",
+            base="../../",
         )
         write_page(POSTS_DIR / post["slug"] / "index.html", page)
 

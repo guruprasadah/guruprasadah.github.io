@@ -13,7 +13,14 @@
   <link rel="canonical" href="https://guruprasadah.me/">
   <meta property="og:url" content="https://guruprasadah.me/">
   <link rel="icon" href="data:,">
-  <link href="/public/output.css" rel="stylesheet">
+  <link href="public/output.css" rel="stylesheet">
+  <script>
+    // htmx cannot fetch file:// URLs. Disable its processing for local
+    // previews so links fall back to ordinary full-page navigation.
+    if (window.location.protocol === 'file:') {
+        document.documentElement.setAttribute('hx-disable', '');
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.16.1/+esm'
@@ -61,7 +68,7 @@
             <p>I do most of this for fun.</p>
         </div>
         <hr class="w-full">
-<div id='content' class='px-2 w-full min-w-0' data-page-title='guruprasadah&#39;s blog'><span class='flex justify-between w-full'><a href='/posts/remote-administration-but-over-quic/' hx-get='/posts/remote-administration-but-over-quic/' hx-select='#main' hx-target='#main' hx-swap='outerHTML' hx-push-url='true' class='text-blue-600'>Remote administration, but over QUIC</a> <span>20260816</span></span>
+<div id='content' class='px-2 w-full min-w-0' data-page-title='guruprasadah&#39;s blog'><span class='flex justify-between w-full'><a href='posts/remote-administration-but-over-quic/index.html' hx-get='posts/remote-administration-but-over-quic/' hx-select='#main' hx-target='#main' hx-swap='outerHTML' hx-push-url='true' class='text-blue-600'>Remote administration, but over QUIC</a> <span>20260816</span></span>
         <script>
     (() => {
         const fixShell = () => {

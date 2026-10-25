@@ -11,7 +11,14 @@
   <link rel="canonical" href="https://guruprasadah.me/posts/remote-administration-but-over-quic/">
   <meta property="og:url" content="https://guruprasadah.me/posts/remote-administration-but-over-quic/">
   <link rel="icon" href="data:,">
-  <link href="/public/output.css" rel="stylesheet">
+  <link href="../../public/output.css" rel="stylesheet">
+  <script>
+    // htmx cannot fetch file:// URLs. Disable its processing for local
+    // previews so links fall back to ordinary full-page navigation.
+    if (window.location.protocol === 'file:') {
+        document.documentElement.setAttribute('hx-disable', '');
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.16.1/+esm'
@@ -61,7 +68,7 @@
         <hr class="w-full">
 <div id='content' class='w-full min-w-0 pt-5 flex flex-col items-center' data-page-title='Remote administration, but over QUIC — guruprasadah&#39;s blog'>
         <div class='w-full flex justify-end px-2'>
-            <a class='text-blue-600' href='/' hx-get='/' hx-select='#main' hx-target='#main' hx-swap='outerHTML' hx-push-url='true'>&crarr; home</a>
+            <a class='text-blue-600' href='../../index.html' hx-get='../../' hx-select='#main' hx-target='#main' hx-swap='outerHTML' hx-push-url='true'>&crarr; home</a>
         </div>
         <div class='prose px-2 w-full min-w-0'>
             <h1>Remote administration, but over QUIC</h1>
